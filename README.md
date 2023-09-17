@@ -53,4 +53,5 @@ To run it use:
 ```
 python3 bot.py
 ```
-
+### > Want to contribute?
+Then check the [issues](https://github.com/miquelt9/otaniemitrackerbot/issues) tab from the project to start working or create your own to let the other know about your thoughs and findings.   
