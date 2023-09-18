@@ -10,9 +10,9 @@ TOKEN = open('token.txt').read().strip()
 BASE_URL = f'https://api.telegram.org/bot{TOKEN}'
 PSWD_ADM = open('pswd.adm').read().strip()
 PSWD_MOD = open('pswd.mod').read().strip()
-GID = open('group_id.txt').read().strip() # Otaniemi group ID
+GID = open('group_id.txt').read().strip()  # Otaniemi group ID
 
-### Global dictionary DB for storing ppl info
+# Global dictionary DB for storing ppl info
 # Contains user.set(tracked_words)
 db = {}
 
@@ -30,9 +30,11 @@ last_save = 0
 
 translator = str.maketrans(string.punctuation, ' ' * len(string.punctuation))
 
+
 def remove_punctuation(input_string):
     cleaned_str = input_string.translate(translator)
     return cleaned_str
+
 
 def save_if_needed(force=False):
 
@@ -40,29 +42,32 @@ def save_if_needed(force=False):
     current_time = time.time()
 
     if (current_time - last_save >= 10) or force:
-        formatted_time = datetime.fromtimestamp(current_time).strftime('%H:%M %d/%m/%Y')
-        print("Saving... at " + str(formatted_time)) 
+        formatted_time = datetime.fromtimestamp(
+            current_time).strftime('%H:%M %d/%m/%Y')
+        print("Saving... at " + str(formatted_time))
         last_save = current_time
-        
+
         with open("db.pkl", "wb") as pickle_file:
             pickle.dump(db, pickle_file)
-        
+
         with open("db2.pkl", "wb") as pickle_file:
             pickle.dump(db2, pickle_file)
 
         with open("dbb.pkl", "wb") as pickle_file:
             pickle.dump(dbb, pickle_file)
 
+
 def load_db():
     global db, db2, dbb
     with open("db.pkl", "rb") as pickle_file:
         db = pickle.load(pickle_file)
-    
+
     with open("db2.pkl", "rb") as pickle_file:
         db2 = pickle.load(pickle_file)
 
     with open("dbb.pkl", "rb") as pickle_file:
         dbb = pickle.load(pickle_file)
+
 
 def new_user(user):
     """
@@ -74,6 +79,7 @@ def new_user(user):
         dbb[user.id] = set()
 
 # Tracking words methods
+
 
 def add_track_word(user, word):
 
@@ -88,6 +94,7 @@ def add_track_word(user, word):
 
     save_if_needed()
 
+
 def remove_track_word(user, word):
 
     if word in db[user.id]:
@@ -100,13 +107,16 @@ def remove_track_word(user, word):
 
     save_if_needed()
 
+
 def remove_all_track_words(user):
     words = list(db[user.id])
     for word in words:
         remove_track_word(user, word)
 
+
 def get_tracked_words(user):
     return db[user.id]
+
 
 def get_users_who_track(word):
     if word in db2:
@@ -115,12 +125,14 @@ def get_users_who_track(word):
 
 # Banned words methods
 
+
 def add_ban_word(user, word):
 
     if word not in dbb[user.id]:
         dbb[user.id].add(word)
 
     save_if_needed()
+
 
 def remove_ban_word(user, word):
 
@@ -129,25 +141,29 @@ def remove_ban_word(user, word):
 
     save_if_needed()
 
+
 def remove_all_ban_words(user):
     words = list(dbb[user.id])
     for word in words:
         remove_ban_word(user, word)
+
 
 def get_banned_words(userId):
     return dbb[userId]
 
 # General methods
 
+
 def extract_word(input_string):
     # Regular expression pattern to match single-quoted, double-quoted, or unquoted words
     pattern = r"'([^']+)'|\"([^\"]+)\"|(\w+)"
-    
+
     match = re.search(pattern, input_string)
     if match:
         return match.group(1) or match.group(2) or match.group(3)
     else:
         return None
+
 
 async def check_if_message_to_group(context, message, user):
     if int(message.chat_id) == int(GID):
@@ -157,6 +173,7 @@ async def check_if_message_to_group(context, message, user):
         await context.bot.send_message(user.id, "Please write directly to the bot (@otaniemitrackerbot)")
         return True
     return False
+
 
 def check_strings_not_in_list(input_list, banned_list):
     for word in input_list:
@@ -172,7 +189,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(user)
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     name = user.first_name
     await context.bot.send_message(user.id, 'Welcome ' + name + '!')
@@ -184,22 +202,23 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     await context.bot.send_message(message.chat_id, "This bot will track the words you wish in \
                                     https://t.me/aaltomarketplace so you get the\
                                     messages filtered.\
                                     \n\nYou can use:"
-                                    + "\n/track 'word'          (to start tracking a word)"
-                                    + "\n/untrack 'word'     (to stop tracking a word)"
-                                    + "\nYou can also /ban 'word' - /unban 'word'"
-                                    + "\n/show                     (to display current tracked/banned words)"
-                                    + "\n/clear                      (stop tracking all words)"
-                                    + "\n/full_help               (shows a more detailed help menu)"
-                                    + "\n/rate [message]    (send any feedback)"
-                                    + "\n\n-> Note that the bot is case insensitive"
-                                    + "\n-> To report any error contact @miquelt_9")
-    
+                                   + "\n/track 'word'          (to start tracking a word)"
+                                   + "\n/untrack 'word'     (to stop tracking a word)"
+                                   + "\nYou can also /ban 'word' - /unban 'word'"
+                                   + "\n/show                     (to display current tracked/banned words)"
+                                   + "\n/clear                      (stop tracking all words)"
+                                   + "\n/full_help               (shows a more detailed help menu)"
+                                   + "\n/rate [message]    (send any feedback)"
+                                   + "\n\n-> Note that the bot is case insensitive"
+                                   + "\n-> To report any error contact @miquelt_9")
+
     if update.effective_user in mods or update.effective_user in admins:
         await context.bot.send_message(user.id, "\nAs an mod you are granted extra commands:\
                                                         \n/user_count                            (which shows how many users are using the bot)\
@@ -222,37 +241,41 @@ async def full_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     await context.bot.send_message(message.chat_id, "All the commands available are:"
-                                    + "\n/track 'word'\n/untrack 'word'"
-                                    + "\n/ban 'word'\n/unban 'word'"
-                                    + "\n/show\n/show_tracked\n/show_banned"
-                                    + "\n/clear (only clears tracked words)\n/clear_banned (only clears banned words)"
-                                    + "\n/rate [message] - /feedback [message] (send any feedback)"
-                                    + "\n/author")
-    
+                                   + "\n/track 'word'\n/untrack 'word'"
+                                   + "\n/ban 'word'\n/unban 'word'"
+                                   + "\n/show\n/show_tracked\n/show_banned"
+                                   + "\n/clear (only clears tracked words)\n/clear_banned (only clears banned words)"
+                                   + "\n/rate [message] - /feedback [message] (send any feedback)"
+                                   + "\n/author")
+
 
 async def author(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     await context.bot.send_message(user.id, 'Otaniemi Buy/Sell Tracker Bot\
                                     \n Miquel Torner Viñals\
                                     \n Bernat Borràs Civil')
 
 ## Tracking words commands ##
 
+
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
-    message = update.message    
+    message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     user_input = message.text.lower()
     splitted_input = user_input.split()
 
@@ -263,13 +286,15 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         await context.bot.send_message(user.id, 'Error: Add just one word after:\
                                         \n/track "word"')
-    
+
+
 async def untrack(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     user_input = update.message.text.lower()
     splitted_input = user_input.split()
@@ -281,13 +306,15 @@ async def untrack(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         await context.bot.send_message(user.id, 'Error: Add just one word after:\
                                         /untrack "word"')
-    
+
+
 async def show_tracked(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     tracked_words = get_tracked_words(user)
 
@@ -296,23 +323,27 @@ async def show_tracked(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     else:
         await context.bot.send_message(user.id, 'You are not tracking any words right now')
 
+
 async def show(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     await show_tracked(update, context)
     await show_banned(update, context)
+
 
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     remove_all_track_words(user)
     await context.bot.send_message(user.id, "You are not longer tracking any words")
 
@@ -321,11 +352,12 @@ async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
-    message = update.message    
+    message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     user_input = message.text.lower()
     splitted_input = user_input.split()
 
@@ -336,13 +368,15 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         await context.bot.send_message(user.id, 'Error: Add just one word after:\
                                         \n/ban "word"')
-    
+
+
 async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     user_input = update.message.text.lower()
     splitted_input = user_input.split()
@@ -354,13 +388,15 @@ async def unban(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         await context.bot.send_message(user.id, 'Error: Add just one word after:\
                                         /unban "word"')
-    
+
+
 async def show_banned(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     baned_words = get_banned_words(user.id)
 
@@ -375,11 +411,11 @@ async def clear_banned(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     message = update.message
     user = update.effective_user
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     remove_all_ban_words(user)
     await context.bot.send_message(user.id, "Succesfully cleared the banned words")
-
 
 
 ### ADMIN AND MOD COMMANDS ###
@@ -389,7 +425,8 @@ async def show_word(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     if user in admins:
         user_input = message.text
@@ -412,21 +449,24 @@ async def user_count(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         return
     elif message.chat_id < 0:
         await context.bot.send_message(admin.id, "Please write directly to the bot (@otaniemitrackerbot)")
-        return 
- 
+        return
+
     if admin in admins or admin in mods:
         num_users = len(db)
         active_users = 0
         for user in db:
-            if db[user]: active_users += 1
+            if db[user]:
+                active_users += 1
         await context.bot.send_message(admin.id, 'There are currently ' + str(active_users) + " active users out of " + str(num_users) + ' registered.')
+
 
 async def rank_tracked(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     if user in admins or user in mods:
         ranking = []
@@ -439,37 +479,43 @@ async def rank_tracked(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             rank_text += "\n" + str(item[1]) + " - " + str(item[0]) + " ppl"
         await context.bot.send_message(user.id, "Ranking the words tracked by people:" + rank_text)
 
+
 async def save_db(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     if user in admins or user in mods:
         save_if_needed(force=True)
         await context.bot.send_message(user.id, "The database was succesfully saved!")
+
 
 async def send_everyone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     if user in admins:
         splitted_input = message.text.split()
         admin_message = ' '.join(splitted_input[1:])
         for user in db.keys():
             await context.bot.send_message(int(user), admin_message)
 
+
 async def send_active(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     if user in admins:
         splitted_input = message.text.split()
         admin_message = ' '.join(splitted_input[1:])
@@ -477,13 +523,15 @@ async def send_active(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             if db[user]:
                 await context.bot.send_message(int(user), admin_message)
 
+
 async def show_admins(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     if user in admins:
         await context.bot.send_message(message.chat_id, 'Current admins are: ' + str(admins))
 
@@ -493,17 +541,20 @@ async def show_mods(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     if user in admins or user in mods:
         await context.bot.send_message(message.chat_id, 'Current mods are: ' + str(mods))
+
 
 async def get_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     user_input = message.text
     splitted_input = user_input.split()
@@ -528,7 +579,8 @@ async def get_mod(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     user_input = message.text
     splitted_input = user_input.split()
@@ -549,12 +601,14 @@ async def get_mod(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 await context.bot.send_message(message.chat_id, 'You got mod rights')
                 mods.add(user)
 
+
 async def rate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
+    if await check_if_message_to_group(context, message, user):
+        return
 
     file_path = "feedback.txt"
 
@@ -567,30 +621,33 @@ async def rate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         feedback_message = ' '.join(splitted_input[1:])
         file.write(feedback_message + "\n")
         await context.bot.send_message(user.id, "Your feedback was succesfully sent to the mods!")
-    
+
 
 async def see_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     file_path = "feedback.txt"
 
     if user in admins or user in mods:
         with open(file_path, 'r') as file:
             for line in file:
                 txt = line.strip()
-                await context.bot.send_message(message.chat_id, 'Someone said: '+ txt)
+                await context.bot.send_message(message.chat_id, 'Someone said: ' + txt)
+
 
 async def clear_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
     user = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user): return
-    
+    if await check_if_message_to_group(context, message, user):
+        return
+
     file_path = "feedback.txt"
 
     if user in admins:
@@ -602,7 +659,7 @@ async def clear_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message:
         return
-    
+
     # Print the message to the console
     message = update.message
 
@@ -616,26 +673,25 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             user_input = message.text
             splitted_input = remove_punctuation(user_input.lower()).split()
 
-        #print(splitted_input)
+        # print(splitted_input)
 
         sender_username = message.from_user.username if message.from_user.username else ""
         already_sent = set()
+        # Get the message link
+        message_link = f"https://t.me/c/{message.chat_id}/{message.message_id}"
         for word in splitted_input:
             if word in db2:
                 for user_id in db2[word]:
                     if check_strings_not_in_list(splitted_input, get_banned_words(int(user_id))):
-                        if (user_id not in already_sent):
-                            #print(user_id)
-                            if sender_username != "":
-                                await context.bot.send_message(user_id, "You might be interested in this message from @"+ sender_username, disable_notification=True)
-                            else:
-                                await context.bot.send_message(user_id, "Looks like you got a new message!")
+                        if user_id not in already_sent:
+                            notification_message = f"You might be interested in this message from @{sender_username}\n{message_link}"
 
-                            await context.bot.forward_message(user_id, from_chat_id=message.chat_id, message_id=message.message_id)
+                            await context.bot.send_message(user_id, notification_message, disable_notification=True)
                             already_sent.add(user_id)
 
+
 def main():
-    
+
     load_db()
 
     # print(db)
@@ -674,10 +730,12 @@ def main():
     app.add_handler(CommandHandler("clear_feedback", clear_feedback))
 
     # Add a message handler that will be called for any message
-    app.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, message_handler))
+    app.add_handler(MessageHandler(
+        filters.TEXT | filters.PHOTO, message_handler))
 
     # Start the bot
     app.run_polling()
+
 
 if __name__ == '__main__':
     main()
