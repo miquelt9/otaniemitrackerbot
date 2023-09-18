@@ -660,34 +660,43 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if not update.message:
         return
 
-    # Print the message to the console
     message = update.message
-
-    # print(message.chat_id)
 
     if int(message.chat_id) == int(GID):
         if message.photo:
+            # Handle single photos as before
             caption = message.caption or ''
             splitted_input = remove_punctuation(caption.lower()).split()
-        else:
-            user_input = message.text
-            splitted_input = remove_punctuation(user_input.lower()).split()
-
-        # print(splitted_input)
-
-        sender_username = message.from_user.username if message.from_user.username else ""
-        already_sent = set()
-        # Get the message link
-        message_link = f"https://t.me/c/{message.chat_id}/{message.message_id}"
-        for word in splitted_input:
-            if word in db2:
-                for user_id in db2[word]:
-                    if check_strings_not_in_list(splitted_input, get_banned_words(int(user_id))):
-                        if user_id not in already_sent:
-                            notification_message = f"You might be interested in this message from @{sender_username}\n{message_link}"
-
-                            await context.bot.send_message(user_id, notification_message, disable_notification=True)
-                            already_sent.add(user_id)
+            sender_username = message.from_user.username if message.from_user.username else ""
+            already_sent = set()
+            message_link = f"https://t.me/c/{message.chat_id}/{message.message_id}"
+            for word in splitted_input:
+                if word in db2:
+                    for user_id in db2[word]:
+                        if check_strings_not_in_list(splitted_input, get_banned_words(int(user_id))):
+                            if user_id not in already_sent:
+                                notification_message = f"You might be interested in this message from @{sender_username}\n{message_link}"
+                                await context.bot.send_message(user_id, notification_message, disable_notification=True)
+                                already_sent.add(user_id)
+        elif message.media_group_id:
+            # Handle media groups (albums)
+            media_group = await context.bot.get_media_group(message.media_group_id)
+            for media in media_group:
+                if media.caption:
+                    caption = media.caption or ''
+                    splitted_input = remove_punctuation(
+                        caption.lower()).split()
+                    sender_username = message.from_user.username if message.from_user.username else ""
+                    already_sent = set()
+                    message_link = f"https://t.me/c/{message.chat_id}/{media.message_id}"
+                    for word in splitted_input:
+                        if word in db2:
+                            for user_id in db2[word]:
+                                if check_strings_not_in_list(splitted_input, get_banned_words(int(user_id))):
+                                    if user_id not in already_sent:
+                                        notification_message = f"You might be interested in this message from @{sender_username}\n{message_link}"
+                                        await context.bot.send_message(user_id, notification_message, disable_notification=True)
+                                        already_sent.add(user_id)
 
 
 def main():
