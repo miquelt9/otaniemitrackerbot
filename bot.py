@@ -663,6 +663,9 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     message = update.message
 
+    if float(message.date.timestamp()) + 5*60 < time.time():
+        return
+
     if int(message.chat_id) == int(GID):
         if message.photo:
             # Handle single photos as before
