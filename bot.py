@@ -11,6 +11,7 @@ BASE_URL = f'https://api.telegram.org/bot{TOKEN}'
 PSWD_ADM = open('pswd.adm').read().strip()
 PSWD_MOD = open('pswd.mod').read().strip()
 GID = open('group_id.txt').read().strip()  # Otaniemi group ID
+GROUP_LINK = open('group_link.txt').read().strip()  # Otaniemi group ID
 
 # Global dictionary DB for storing ppl info
 # Contains user.set(tracked_words)
@@ -669,13 +670,13 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             splitted_input = remove_punctuation(caption.lower()).split()
             sender_username = message.from_user.username if message.from_user.username else ""
             already_sent = set()
-            message_link = f"https://t.me/c/{message.chat_id}/{message.message_id}"
+            message_link = f"{GROUP_LINK}/{message.message_id}"
             for word in splitted_input:
                 if word in db2:
                     for user_id in db2[word]:
                         if check_strings_not_in_list(splitted_input, get_banned_words(int(user_id))):
                             if user_id not in already_sent:
-                                notification_message = f"You might be interested in this message from @{sender_username}\n{message_link}"
+                                notification_message = f"You might be interested in this message ({word} detected)\n{message_link}"
                                 await context.bot.send_message(user_id, notification_message, disable_notification=True)
                                 already_sent.add(user_id)
         elif message.media_group_id:
@@ -688,13 +689,13 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                         caption.lower()).split()
                     sender_username = message.from_user.username if message.from_user.username else ""
                     already_sent = set()
-                    message_link = f"https://t.me/c/{message.chat_id}/{media.message_id}"
+                    message_link = f"{GROUP_LINK}/{message.message_id}"
                     for word in splitted_input:
                         if word in db2:
                             for user_id in db2[word]:
                                 if check_strings_not_in_list(splitted_input, get_banned_words(int(user_id))):
                                     if user_id not in already_sent:
-                                        notification_message = f"You might be interested in this message from @{sender_username}\n{message_link}"
+                                        notification_message = f"You might be interested in this message ({word} detected)\n{message_link}"
                                         await context.bot.send_message(user_id, notification_message, disable_notification=True)
                                         already_sent.add(user_id)
 
