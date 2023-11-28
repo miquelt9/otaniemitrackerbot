@@ -42,7 +42,7 @@ The commands for the bot are the follwing ones:
 
 In order to run the bot you will first have to install the requirements using:
 ```
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 You will also need a tocken of the bot (https://t.me/botfather) which you should put into a `token.txt` file.   
 The same applies for `pswd.adm` and `pswd.mod` which are the files that contains the respective passwords in plain text.   
