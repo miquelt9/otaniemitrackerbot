@@ -9,13 +9,6 @@ from datetime import datetime
 
 logging.basicConfig(filename='bot.log', filemode='w', format='%(asctime)s - %(message)s', level=logging.INFO)
 
-TOKEN = open('token.txt').read().strip()
-BASE_URL = f'https://api.telegram.org/bot{TOKEN}'
-PSWD_ADM = open('pswd.adm').read().strip()
-PSWD_MOD = open('pswd.mod').read().strip()
-GID = open('group_id.txt').read().strip()  # Otaniemi group ID
-GROUP_LINK = open('group_link.txt').read().strip()  # Otaniemi group ID
-
 # Global dictionary DB for storing ppl info
 # Contains user.set(tracked_words)
 db = {}
@@ -34,10 +27,60 @@ last_save = 0
 
 translator = str.maketrans(string.punctuation, ' ' * len(string.punctuation))
 
-
 def remove_punctuation(input_string):
     cleaned_str = input_string.translate(translator)
     return cleaned_str
+
+def read_files():
+    global TOKEN
+    try:
+        TOKEN = open('token.txt').read().strip()
+    except Exception as e:
+        logging.error("Error on reading TOKEN, make sure the file token.txt exists.")
+
+    global BASE_URL
+    BASE_URL = f'https://api.telegram.org/bot{TOKEN}'
+
+    global PSWD_ADM
+    try:
+        PSWD_ADM = open('pswd.adm').read().strip()
+    except Exception as e:
+        logging.error("Error on reading PSWD_ADM, make sure the file pswd.adm exists.")
+
+    global PSWD_MOD
+    try:
+        PSWD_MOD = open('pswd.mod').read().strip()
+    except Exception as e:
+        logging.error("Error on reading PSWD_MOD, make sure the file pswd.mod exists.")
+
+    global GID1 # Otaniemi buy/sell group ID
+    try:
+        GID1 = open('group1_id.txt').read().strip()  
+    except Exception as e:
+        GID1 = 0
+        logging.error("Error on reading GID1, make sure the file group1_id.txt exists")
+
+    global GROUP_LINK1 # Otaniemi buy/sell group ID
+    try:
+        GROUP_LINK1 = open('group1_link.txt').read().strip()  
+    except Exception as e:
+        GROUP_LINK1 = "error_on_bot"
+        logging.error("Error on reading GROUP_LINK1, make sure the file group1_link.txt exists")
+
+    global GID2 # Otaniemi buy/sell group ID
+    try:
+        GID2 = open('group2_id.txt').read().strip()  
+    except Exception as e:
+        GID2 = 0
+        logging.error("Error on reading GID2, make sure the file group2_id.txt exists")
+
+    global GROUP_LINK2 # Otaniemi buy/sell group ID
+    try:
+        GROUP_LINK2 = open('group2_link.txt').read().strip()  
+    except Exception as e:
+        GROUP_LINK2 = "error_on_bot"
+        logging.error("Error on reading GROUP_LINK2, make sure the file group2_link.txt exists")
+
 
 
 def save_if_needed(force=False):
@@ -190,7 +233,7 @@ def extract_word(input_string):
 
 
 async def check_if_message_to_group(context, message, user):
-    if int(message.chat_id) == int(GID):
+    if int(message.chat_id) == int(GID1):
         await check_then_send_message(context, user, "To prevent message influx write me directly @otaniemitrackerbot")
         return True
     elif message.chat_id < 0:
@@ -235,6 +278,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await check_then_send_message(context, user, 'Welcome ' + name + '!', type="Start")
     await check_then_send_message(context, user, 'Write /help to list the available commands', type="Start")
 
+async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    new_user(update.effective_user)
+    message = update.message
+    user = update.effective_user
+
+    if await check_if_message_to_group(context, message, user):
+        return    
+
+    response_time = float(time.time()) - message.date.timestamp()
+
+    await check_then_send_message(context, user, 'Still awake, time to reply: ' + str(int(response_time*1000)) + ' ms', type="Ping")
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     new_user(update.effective_user)
@@ -245,8 +299,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     await check_then_send_message(context, user, "This bot will track the words you wish in \
-                                    https://t.me/aaltomarketplace so you get the\
-                                    messages filtered.\
+                                    https://t.me/aaltomarketplace and https://t.me/annetaantavaraa so you get the messages tailored for you.\
                                     \n\nYou can use:"
                                    + "\n/track 'word'          (to start tracking a word)"
                                    + "\n/untrack 'word'     (to stop tracking a word)"
@@ -284,12 +337,19 @@ async def full_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     await check_then_send_message(context, user, "All the commands available are:"
-                                   + "\n/track 'word'\n/untrack 'word'"
-                                   + "\n/ban 'word'\n/unban 'word'"
-                                   + "\n/show\n/show_tracked\n/show_banned"
-                                   + "\n/clear (only clears tracked words)\n/clear_banned (only clears banned words)"
-                                   + "\n/rate [message] - /feedback [message] (send any feedback)"
-                                   + "\n/author", type="Full Help")
+                                   + "\n/track 'word'   - Track a word (messages containing the word will be send to you)"
+                                   + "\n/untrack 'word' - Stop tracking a word"
+                                   + "\n/ban 'word'     - Ban a word (messages containing it won't be received)"
+                                   + "\n/unban 'word'   - Stop banning a word"
+                                   + "\n/show           - Show tracked and banned words"
+                                   + "\n/show_tracked   - Show tracked words"
+                                   + "\n/show_banned    - Shows banned words"
+                                   + "\n/clear          - Clears (only) tracked words" 
+                                   + "\n/clear_banned   - Clears (only) banned words"
+                                   + "\n/rate [message]     - Send a message for mods"
+                                   + "\n/feedback [message] - Send a message for mods"
+                                   + "\n/ping           - Check if the bot is awake"
+                                   + "\n/author         - Display the bot's author", type="Full Help")
 
 
 async def author(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -302,7 +362,8 @@ async def author(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await check_then_send_message(context, user, 'Otaniemi Buy/Sell Tracker Bot\
                                     \n Miquel Torner Viñals\
-                                    \n Bernat Borràs Civil', type="Author")
+                                    \n Bernat Borràs Civil\
+                                    \n Source code and contributions: https://github.com/miquelt9/otaniemitrackerbot', type="Author")
 
 ## Tracking words commands ##
 
@@ -702,14 +763,15 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if float(message.date.timestamp()) + 5*60 < time.time():
         return
 
-    if int(message.chat_id) == int(GID):
+    already_sent = set()
+
+    if int(message.chat_id) == int(GID1):   # Message received through group1 (buy/sell otaniemi)
         if message.photo:
-            # Handle single photos as before
+            # Handle single photos
             caption = message.caption or ''
             splitted_input = remove_punctuation(caption.lower()).split()
             sender_username = message.from_user.username if message.from_user.username else ""
-            already_sent = set()
-            message_link = f"{GROUP_LINK}/{message.message_id}"
+            message_link = f"{GROUP_LINK1}/{message.message_id}"
             for word in splitted_input:
                 if word in db2:
                     for user_id in db2[word]:
@@ -727,8 +789,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     splitted_input = remove_punctuation(
                         caption.lower()).split()
                     sender_username = message.from_user.username if message.from_user.username else ""
-                    already_sent = set()
-                    message_link = f"{GROUP_LINK}/{message.message_id}"
+                    message_link = f"{GROUP_LINK1}/{message.message_id}"
                     for word in splitted_input:
                         if word in db2:
                             for user_id in db2[word]:
@@ -739,7 +800,43 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                                         already_sent.add(user_id)
 
 
+    if int(message.chat_id) == int(GID2):   # Message received through group2 (giveaway otaniemi)
+        if message.photo:
+            # Handle single photos
+            caption = message.caption or ''
+            splitted_input = remove_punctuation(caption.lower()).split()
+            sender_username = message.from_user.username if message.from_user.username else ""
+            message_link = f"{GROUP_LINK2}/{message.message_id}"
+            for word in splitted_input:
+                if word in db2:
+                    for user_id in db2[word]:
+                        if check_strings_not_in_list(splitted_input, get_banned_words(int(user_id))):
+                            if user_id not in already_sent:
+                                notification_message = f"Free stuff is available ({word} detected)\n{message_link}"
+                                await check_then_send_message(context, None, notification_message, notification=True, user_id=user_id, type="Detection (Photo)")
+                                already_sent.add(user_id)
+        elif message.media_group_id:
+            # Handle media groups (albums)
+            media_group = await context.bot.get_media_group(message.media_group_id)
+            for media in media_group:
+                if media.caption:
+                    caption = media.caption or ''
+                    splitted_input = remove_punctuation(
+                        caption.lower()).split()
+                    sender_username = message.from_user.username if message.from_user.username else ""
+                    message_link = f"{GROUP_LINK2}/{message.message_id}"
+                    for word in splitted_input:
+                        if word in db2:
+                            for user_id in db2[word]:
+                                if check_strings_not_in_list(splitted_input, get_banned_words(int(user_id))):
+                                    if user_id not in already_sent:
+                                        notification_message = f"Free stuff is available ({word} detected)\n{message_link}"
+                                        await check_then_send_message(context, None, notification_message, notification=True, user_id=user_id, type="Detection (Album)")
+                                        already_sent.add(user_id)
+
 def main():
+
+    read_files()
 
     load_db()
 
@@ -752,6 +849,7 @@ def main():
     app.add_handler(CommandHandler("help", help))
     app.add_handler(CommandHandler("full_help", full_help))
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("ping", ping))
     app.add_handler(CommandHandler("track", track))
     app.add_handler(CommandHandler("untrack", untrack))
     app.add_handler(CommandHandler("show", show))

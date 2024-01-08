@@ -9,6 +9,7 @@ The commands for the bot are the follwing ones:
 | Command | Description | Permisions |
 |---|---|---|
 | /start | Starts the bot | User  |
+| /ping | Check if the bot is awake | User  |
 | /help | Shows help message | User  |
 | /full_help | Shows a more detailed help message | User |
 | /track [word] | Starts tracking a word  | User |
