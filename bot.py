@@ -233,7 +233,7 @@ def extract_word(input_string):
 
 
 async def check_if_message_to_group(context, message, user):
-    if int(message.chat_id) == int(GID1):
+    if int(message.chat_id) == int(GID1) or int(message.chat_id) == int(GID2):
         await check_then_send_message(context, user, "To prevent message influx write me directly @otaniemitrackerbot")
         return True
     elif message.chat_id < 0:
@@ -544,9 +544,9 @@ async def user_count(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     admin = update.effective_user
     message = update.message
 
-    if await check_if_message_to_group(context, message, user):
-            return
-
+    if await check_if_message_to_group(context, message, admin):
+        return
+    
     if admin in admins or admin in mods:
         num_users = len(db)
         active_users = 0
