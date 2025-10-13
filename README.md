@@ -5,56 +5,83 @@ Source code for otaniemi tracker bot (https://t.me/otaniemitrackerbot)
 
 This bot became the solution to a problem I had when moving to Finland for Erasmus since the apartment I got was not furnished, the main recommended group to get the furniture has a lot influx so I needed a way to filter what was important for me. The bot allows you to track the objects you are interested in the desired group and forwards to you any message that you might be interested in so you don't miss it.
 
-The commands for the bot are the follwing ones:
-| Command | Description | Permisions |
-|---|---|---|
-| /start | Starts the bot | User  |
-| /ping | Check if the bot is awake | User  |
-| /help | Shows help message | User  |
-| /full_help | Shows a more detailed help message | User |
-| /track [word] | Starts tracking a word  | User |
-| /untrack [word]| Stops tracking a word | User |
-| /ban [word]| Bans a word | User |
-| /unban [word]| Unbans a word | User |
-| /show | Shows the tracked and banned words | User |
-| /show_tracked | Shows the tracked words | User |
-| /show_banned | Shows the banned words | User |
-| /clear | Clears the tracked words | User |
-| /clear_banned | Clears the banned words | User |
-| /feedback [message] | Sends a feedback message to the bot | User |
-| /rate [message] | " | User |
-| /author | Shows the credits | User |
-| /get_mod [pswd] | Gives mod rights to the user | User |
-| /get_admin [pswd] | Gives admin and mod rights to the user | User |
-| /user_count | Shows current count of users of the bot | Mod |
-| /rank_words | Shows a list of the tracked words ordered by #ppl tracking it | Mod |
-| /rank_tracked | " | Mod |
-| /save | Saves the current database (otherwise only done when a user sends a command) | Mod |
-| /see_feedback | Shows the feedback sent by the users | Mod |
-| /check_feedback | Shows the feedback sent by the users | Mod |
-| /show_mods | Shows all the users that has mods rights | Mod |
-| /show_admins | Shows all the users that has admins rights | Admin |
-| /clear_feedback | Cleans the feedback file | Admin |
-| /send_active [message] | Send a message to all active users | Admin |
-| /send_everyone [message] | Send a message to all users | Admin |
+The bot now features an **interactive menu system** that makes it much easier to use! Most functionality is accessible through buttons and menus rather than commands.
 
+### > Key Features
+
+- **Interactive Menus**: Easy-to-use button-based interface
+- **Word Tracking**: Track specific words to get notified when they appear in groups
+- **Word Banning**: Ban words to avoid notifications containing them
+- **Analytics Dashboard**: View usage statistics and popular words
+- **Broadcast System**: Admins can send messages to all users
+- **Database Export**: Export all data for backup and analysis
+- **Smart Notifications**: Ignores old messages to prevent spam when bot restarts
+- **Real-time Updates**: Instant notifications when tracked words are detected
+
+### > Commands
+
+| Command | Description | Permissions |
+|---|---|---|
+| `/start` | Starts the bot and shows main menu | User |
+| `/help` | Shows interactive help menu | User |
+| `/track [word]` | Starts tracking a word | User |
+| `/ban [word]` | Bans a word (not recommended) | User |
+| `/feedback [message]` | Sends feedback to the team | User |
+| `/ping` | Check if the bot is awake | User |
+| `/author` | Shows the credits | User |
+| `/user_count` | Shows current count of users | Mod |
+| `/rank_words` | Shows tracked words by popularity | Mod |
+| `/save` | Saves the current database | Mod |
+| `/see_feedback` | Shows user feedback | Mod |
+| `/show_mods` | Shows all moderators | Mod |
+| `/show_admins` | Shows all administrators | Admin |
+| `/clear_feedback` | Clears all feedback | Admin |
+| `/export_database` | Exports database files for backup | Admin |
 
 ### > How to run it yourself
 
-In order to run the bot you will first have to install the requirements using:
-```
-pip install -r requirements.txt
-```
-You will also need a tocken of the bot (https://t.me/botfather) which you should put into a `token.txt` file.   
-The same applies for `pswd.adm` and `pswd.mod` which are the files that contains the respective passwords in plain text.   
-Also, this bot loads the DB when it starts, if the correct files aren't manually created (which I don't personally recommend since those are pickle files named `db.pkl`, `db2.pkl` and `dbb.pkl`) you have to create them, the recommended way is to comment the _load_db()_ method on the python code and run it then send the _/start_ command followed by a _/track [word]_ or _/get_mod [your_pswd]_ and _/save_. After the files will already be created and you can uncomment it and run as usually.
-The last needed file is the `group_id.txt`, which contains the id of the tracked group, in order to get it I personally recommend printing the chat id, there's a commented line in _message_handler(...)_ method to make it easier. Also group public `group_link.txt` is needed (see the description of the group to find it).
+#### Prerequisites
+1. **Python 3.8+** installed on your system
+2. **Bot Token** from [@BotFather](https://t.me/botfather)
+3. **Group IDs** and **Group Links** for the groups you want to monitor
 
--> Now available the [basic_testing_files.zip](./basic_testing_files.zip) so you don't need to do all the stuff above to run it (except for group_id.txt and token.txt)
+#### Setup Instructions
 
-To run it use:
-```
-python3 bot.py
-```
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Create required files:**
+   - `token.txt` - Your bot token from BotFather
+   - `group1_id.txt` - ID of the first group to monitor
+   - `group1_link.txt` - Public link to the first group
+   - `group2_id.txt` - ID of the second group to monitor  
+   - `group2_link.txt` - Public link to the second group
+   - `pswd.adm` - Admin password (plain text)
+   - `pswd.mod` - Moderator password (plain text)
+
+3. **Run the bot:**
+   ```bash
+   python3 bot.py
+   ```
+
+#### Getting Group IDs
+
+To get a group ID:
+1. Add your bot to the group
+2. Send a message in the group
+3. Check the bot logs - the group ID will be printed
+4. Save it to the appropriate `group_id.txt` file
+
+#### Database Files
+
+The bot automatically creates the required database files (`db.pkl`, `db2.pkl`, `dbb.pkl`, `history.pkl`) when first run. No manual setup required!
+
 ### > Want to contribute?
-Then check the [issues](https://github.com/miquelt9/otaniemitrackerbot/issues) tab from the project to start working or create your own to let the other know about your thoughs and findings.   
+
+Check the [issues](https://github.com/miquelt9/otaniemitrackerbot/issues) tab from the project to start working or create your own to let others know about your thoughts and findings.
+
+### > License
+
+This project is open source. Feel free to use, modify, and distribute according to your needs.
